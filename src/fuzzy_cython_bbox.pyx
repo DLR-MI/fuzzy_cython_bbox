@@ -110,7 +110,7 @@ def fuzzy_bbox_ious(
                     # Corresponding spreads
                     d_ia  = iw * (abs(std_boxes[n, 1] - std_query_boxes[k, 1]) + 0.5 * (std_boxes[n, 3] + std_query_boxes[k, 3]))
                     d_ia += ih * (abs(std_boxes[n, 0] - std_query_boxes[k, 0]) + 0.5 * (std_boxes[n, 2] + std_query_boxes[k, 2]))
-                    std_overlaps[n, k] = d_ia / (iw * ih) if d_ia < iw * ih else 0.0
+                    std_overlaps[n, k] = d_ia / (iw * ih) if d_ia < iw * ih else 1.0
 
     return overlaps, std_overlaps
 
