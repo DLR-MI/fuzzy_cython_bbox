@@ -178,4 +178,4 @@ def disambiguate_ious(
                 new_iou = sort_ious_unresolved[j]
                 new_ious[i, idx_row_unresolved[as_ref]] = new_iou
     
-    return new_ious, was_ambiguous
+    return new_ious, was_ambiguous, unresolved_ious
