@@ -119,6 +119,7 @@ def disambiguate_ious(
     np.ndarray[DTYPE_t, ndim=2] ious,
     np.ndarray[DTYPE_t, ndim=2] ious_std,
     np.ndarray[DTYPE_t, ndim=2] reference,
+    np.ndarray[DTYPE_t, ndim=2] scores,
     np.float_t thresh_iou,
     np.float_t thresh_std = 0.5):
     """
@@ -127,11 +128,13 @@ def disambiguate_ious(
     ious: (N, K) ndarray of float
     ious_std: (N, K) ndarray of float
     reference: (N, K) ndarray of float 
+    scores: (N, K) ndarray of float 
     thresh_iou: float
     thresh_iou (optional): float
     Returns
     -------
     ious: (N, K) ndarray of disambiguated ious
+    scores: (N, K) ndarray of permuted scores
     was_ambiguous: bool -> whether or not the ious where ambiguous
     """
     cdef unsigned int N = ious.shape[0]
@@ -140,6 +143,7 @@ def disambiguate_ious(
     cdef unsigned int l, r
     cdef np.ndarray[BOOL_t, ndim=2] unresolved_ious = ious < 0
     cdef np.ndarray[DTYPE_t, ndim=2] new_ious = np.copy(ious)
+    cdef np.ndarray[DTYPE_t, ndim=2] new_scores = np.copy(scores)
     cdef bint was_ambiguous = False
     cdef float ll, lr, rl, rr, min_overlap
 
@@ -169,13 +173,14 @@ def disambiguate_ious(
         
         # Rearrange the unresolved ious according to the order in reference
         if unresolved_ious[i].any():
-            idx_row_unresolved = np.where(unresolved_ious[i])[0]
-            idx_sort_ref_unresolved = np.argsort(reference[i, idx_row_unresolved])
-            sort_ious_unresolved = np.sort(ious[i, idx_row_unresolved])
+            cols_ambig = np.where(unresolved_ious[i])[0]
+            idx_sort_ref_unresolved = np.argsort(reference[i, cols_ambig])
+            idx_sort_ious_unresolved = np.argsort(ious[i, cols_ambig])
 
-            for j in range(len(idx_row_unresolved)):
+            for j in range(len(cols_ambig)):
                 as_ref = idx_sort_ref_unresolved[j]
-                new_iou = sort_ious_unresolved[j]
-                new_ious[i, idx_row_unresolved[as_ref]] = new_iou
+                as_iou = idx_sort_ious_unresolved[j]
+                new_ious[i, cols_ambig[as_ref]] = ious[i, cols_ambig[as_iou]]
+                new_scores[i, cols_ambig[as_ref]] = scores[i, cols_ambig[as_iou]]
     
-    return new_ious, was_ambiguous, unresolved_ious
+    return new_ious, new_scores, was_ambiguous
