@@ -121,7 +121,8 @@ def disambiguate_ious(
     np.ndarray[DTYPE_t, ndim=2] reference,
     np.ndarray[DTYPE_t, ndim=2] scores,
     np.float_t thresh_iou,
-    np.float_t thresh_std = 0.5):
+    np.float_t thresh_std = 0.5,
+    bint perm_scores = False):
     """
     Parameters
     ----------
@@ -181,6 +182,7 @@ def disambiguate_ious(
                 as_ref = idx_sort_ref_unresolved[j]
                 as_iou = idx_sort_ious_unresolved[j]
                 new_ious[i, cols_ambig[as_ref]] = ious[i, cols_ambig[as_iou]]
-                new_scores[i, cols_ambig[as_ref]] = scores[i, cols_ambig[as_iou]]
+                if perm_scores:
+                    new_scores[i, cols_ambig[as_ref]] = scores[i, cols_ambig[as_iou]]
     
     return new_ious, new_scores, was_ambiguous
